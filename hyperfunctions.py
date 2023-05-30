@@ -3,7 +3,7 @@
 
 '''
 Author: Guillermo Vera, Jinling Yang, Gonzalo Contreras-Aso
-Title: Functions related to the community calculation in hypergraphs
+Title: Functions related to community partitions in hypergraphs with the derivative graph.
 '''
 
 import numpy as np
@@ -12,9 +12,6 @@ import statistics
 from itertools import combinations, permutations
 from collections import defaultdict
 from scipy.cluster import hierarchy
-
-import random
-random.seed(10)
 
 
 def adjacent_values_dict(H):

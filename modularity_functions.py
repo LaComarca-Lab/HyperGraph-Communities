@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+'''
+Author: Guillermo Vera, Jinling Yang, Gonzalo Contreras-Aso
+Title: Functions related to the modularity and the algorithm defined in Kumar et. al.
+'''
+
 import networkx as nx
 import numpy as np
 import xgi
