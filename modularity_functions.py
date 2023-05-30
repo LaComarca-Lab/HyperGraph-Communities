@@ -2,6 +2,37 @@ import networkx as nx
 import numpy as np
 import xgi
 
+
+def reduced_adjacency_matrix(H):
+    """ Computes the reduced adjacency matrix of a hypergraph H,
+    and the associated graph.
+    """
+    # Obtain the hypergraph incidence matrix
+    W = np.identity(len(H.edges))
+    I = xgi.convert.to_incidence_matrix(H, sparse=True, index=False)
+
+    # Define the delta_e list and D_v matrix
+    delta_e = [len(edge) for edge in H.edges.members()]
+    D_e = np.diag(delta_e)
+
+    # Compute the reduced adjacency matrix of the hypergraph
+    A = np.dot(I.dot(W), np.dot(np.linalg.inv((D_e - np.identity(len(H.edges)))), I.T.todense()))
+    A -= np.diag(np.diag(A))
+    
+
+    # Create the associated graph
+    G = nx.from_numpy_array(A)
+
+    # Relabeling the nodes to meet with H
+    mapping = {}
+    for cont, node in enumerate(H.nodes):
+        mapping[cont] = node
+
+    G = nx.relabel_nodes(G, mapping)
+    
+    return A, G, mapping
+
+
 def IRMM_algorithm(H, W=None, tol=1e-3):
     ''' Given a Hypergraph H, obtain the associated clusters via
     the Iterated Reweighted Modularity Maximization algorithm.

@@ -240,3 +240,26 @@ def communities(H, derivative, method, threshold=None, n_clusters=None):
 
     return communities_dict
     
+    
+def height_based_cut(Z):
+    """ Cut a dendrogram Z based at the highest height difference,
+    return the height cut and the number of communities obtained.
+    """
+    
+    # Calculate all heights
+    Lamb = []
+    for n in range(len(Z)):
+        if n>=1:
+            lamb = Z[n][2] - Z[n-1][2]
+            Lamb.append(lamb)
+            
+    #print(Lamb)
+            
+    m = max(Lamb)
+    num_fusion = [i for i, j in enumerate(Lamb) if j == m]
+    index_max = num_fusion[0]
+    #print(m, index_max)
+    
+    h_cut = (Z[index_max+1][2] + Z[index_max][2])/2
+    
+    return h_cut, num_fusion
