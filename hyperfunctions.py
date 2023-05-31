@@ -39,6 +39,7 @@ def adjacent_values_dict(H):
         for i in edge:
             for j in edge:
                 aij_dict[(i,j)] += 1
+                
     return hyperdeg_dict, aij_dict
 
 
