@@ -9,6 +9,8 @@ Title: Functions related to the modularity and the algorithm defined in Kumar et
 import networkx as nx
 import numpy as np
 import xgi
+from scipy.cluster import hierarchy
+from collections import defaultdict
 
 
 def reduced_adjacency_matrix(H):
@@ -41,7 +43,36 @@ def reduced_adjacency_matrix(H):
     return A, G, mapping
 
 
-def IRMM_algorithm(H, W=None, tol=1e-3):
+def calculate_modularities(H, G, Z, verbose=True):
+    
+    Modularity = []
+    for n in range(len(H.nodes)):
+
+        if n % 50 == 0 and verbose:
+            print(f'-- {n/len(H.nodes)}% --')
+
+        cuttree = hierarchy.cut_tree(Z, n_clusters = n)
+        Communities_dict = {}
+
+        for cont, i in enumerate(H.nodes):
+            Communities_dict[i] = cuttree[cont][0]
+
+        # Get the list of communities
+        grouped_dict = defaultdict(list)
+        for key, val in Communities_dict.items():
+            grouped_dict[val].append(key)
+
+        Communities_list = list(grouped_dict.values())
+
+        q = nx.community.modularity(G, Communities_list)
+
+        Modularity.append(q)
+        
+    return Modularity
+
+
+
+def IRMM_algorithm(H, W=None, tol=1e-3, itmax = 10000, verbose = True):
     ''' Given a Hypergraph H, obtain the associated clusters via
     the Iterated Reweighted Modularity Maximization algorithm.
     '''
@@ -93,9 +124,10 @@ def IRMM_algorithm(H, W=None, tol=1e-3):
         
         # Manual brake
         it += 1
-        if it > 10000:
-            raise Exception("No convergence after 10000 iterations")
+        if it > itmax:
+            raise Exception(f"No convergence after {itmax} iterations")
 
-    print(f'It converge after {it} iterations')
+    if verbose:
+        print(f'It converged after {it} iterations')
 
     return clusters    
