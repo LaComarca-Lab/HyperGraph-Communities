@@ -9,7 +9,7 @@ Title: Functions related to community partitions in hypergraphs with the derivat
 import numpy as np
 import networkx as nx
 import statistics
-from itertools import combinations, permutations
+from itertools import combinations, product
 from collections import defaultdict
 from scipy.cluster import hierarchy
 
@@ -261,3 +261,22 @@ def height_based_cut(Z):
     h_cut = (Z[index_max+1][2] + Z[index_max][2])/2
     
     return h_cut, num_fusion
+
+
+def similarity_partitions(partition_1, partition_2):
+    """ Compute an index of the similarity between two partitions 
+    of the same set. The normalization can be either geometric or arithmetic.
+    """
+    
+    Jacc = 0
+    for part_1, part_2 in product(partition_1, partition_2):
+        union = set(part_1).union(set(part_2))
+        intersection = set(part_1).intersection(set(part_2))
+
+        Jacc += len(intersection)/len(union)
+
+    Jacc_geom = Jacc / np.sqrt(len(partition_1) * len(partition_2))
+
+    Jacc_arit = 2 * Jacc / (len(partition_1) + len(partition_2))
+
+    return Jacc_geom, Jacc_arit
