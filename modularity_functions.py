@@ -9,6 +9,7 @@ Title: Functions related to the modularity and the algorithm defined in Kumar et
 import networkx as nx
 import numpy as np
 import xgi
+from scipy.sparse import identity, diags, csc_matrix, linalg
 from scipy.cluster import hierarchy
 from collections import defaultdict
 
@@ -18,16 +19,16 @@ def reduced_adjacency_matrix(H):
     and the associated graph.
     """
     # Obtain the hypergraph incidence matrix
-    W = np.identity(len(H.edges))
-    I = xgi.convert.to_incidence_matrix(H, sparse=True, index=False)
+    W = identity(len(H.edges)).tocsc()
+    I = xgi.convert.to_incidence_matrix(H, sparse=True, index=False).tocsc()
 
     # Define the delta_e list and D_v matrix
     delta_e = [len(edge) for edge in H.edges.members()]
-    D_e = np.diag(delta_e)
+    D_e = diags(delta_e).tocsc()
 
     # Compute the reduced adjacency matrix of the hypergraph
-    A = np.dot(I.dot(W), np.dot(np.linalg.inv((D_e - np.identity(len(H.edges)))), I.T.todense()))
-    A -= np.diag(np.diag(A))
+    A = csc_matrix.dot(I.dot(W), csc_matrix.dot(linalg.inv((D_e - identity(len(H.edges)))), I.T.todense()))
+    A -= diags(np.diag(A))
     
 
     # Create the associated graph
@@ -79,13 +80,13 @@ def IRMM_algorithm(H, W=None, tol=1e-3, itmax = 10000, verbose = True):
 
     # Define the associated weight and incidence matrices
     if not W:
-        W = np.identity(len(H.edges))
+        W = identity(len(H.edges)).tocsc()
 
-    I = xgi.convert.to_incidence_matrix(H, sparse=True, index=False)
+    I = xgi.convert.to_incidence_matrix(H, sparse=True, index=False).tocsc()
     
     # Define the delta_e list and D_v matrix
     delta_e = [len(edge) for edge in H.edges.members()]
-    D_e = np.diag(delta_e)
+    D_e = diags(delta_e).tocsc()
 
     D_v = np.zeros((len(H.nodes),len(H.nodes)))
     for i, degree in enumerate(H.degree().values()):
@@ -97,15 +98,15 @@ def IRMM_algorithm(H, W=None, tol=1e-3, itmax = 10000, verbose = True):
     while diff > tol:
 
         # Compute the reduced adjacency matrix of the hypergraph
-        A = np.dot(I.dot(W), np.dot(np.linalg.inv((D_e - np.identity(len(H.edges)))), I.T.todense()))
-        A -= np.diag(np.diag(A))
+        A = csc_matrix.dot(I.dot(W), csc_matrix.dot(linalg.inv((D_e - identity(len(H.edges)))), I.T.todense()))
+        A -= diags(np.diag(A))
 
         # Apply the Louvain algorithm to the associated graph
         G = nx.from_numpy_array(A)
         clusters = nx.community.louvain_communities(G)
 
         # Loop over each edge e, updating the corresponding W[e,e]
-        W_prev = np.copy(W)
+        W_prev = W.copy()
         for e, edge in enumerate(H.edges.members()):
             
             # Intersect the edge's nodes with each cluster, computing the k_i's
@@ -130,4 +131,4 @@ def IRMM_algorithm(H, W=None, tol=1e-3, itmax = 10000, verbose = True):
     if verbose:
         print(f'It converged after {it} iterations')
 
-    return clusters    
+    return clusters   
